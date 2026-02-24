@@ -554,11 +554,17 @@ body {
   font-size: 0.875rem;
 }
 
+.today-card__rank {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  font-family: var(--font-mono);
+}
+
 .today-card__percentile {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
-  margin-top: 1px;
 }
 
 @media (max-width: 640px) {

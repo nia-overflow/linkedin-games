@@ -24,6 +24,7 @@ export interface GameHistoryEntry {
   score: number | null
   completionTimeSecs: number | null
   percentile: number | null
+  myRank: number | null
 }
 
 export interface LeaderboardEntry {

@@ -77,6 +77,7 @@ async function runScraper(): Promise<void> {
       const percentile = (selfEntry?.rank != null && total > 0)
         ? Math.round(((total - selfEntry.rank) / total) * 100)
         : undefined;
+      const myRank = selfEntry?.rank ?? undefined;
 
       // Persist game result
       upsertGameResult({
@@ -87,6 +88,7 @@ async function runScraper(): Promise<void> {
         score: result.score,
         completionTimeSecs: result.completionTimeSecs,
         percentile,
+        myRank,
         rawData: result.rawData,
       });
 

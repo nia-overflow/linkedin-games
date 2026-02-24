@@ -66,4 +66,7 @@ export function applySchema(db: Database.Database): void {
   if (!gameResultsCols.includes('percentile')) {
     db.exec(`ALTER TABLE game_results ADD COLUMN percentile INTEGER`);
   }
+  if (!gameResultsCols.includes('my_rank')) {
+    db.exec(`ALTER TABLE game_results ADD COLUMN my_rank INTEGER`);
+  }
 }

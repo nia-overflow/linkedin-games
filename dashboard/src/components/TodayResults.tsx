@@ -82,6 +82,9 @@ export function TodayResults({ games }: Props) {
             <span className="today-card__status">{entry.completed ? '✅' : '❌'}</span>
             <span className="today-card__name">{capitalize(game)}</span>
             <span className="today-card__time">{timeLabel}</span>
+            {entry.myRank !== null && entry.myRank !== undefined && (
+              <span className="today-card__rank">Rank #{entry.myRank}</span>
+            )}
             {entry.percentile !== null && entry.percentile !== undefined && (
               <span className="today-card__percentile">{entry.percentile}th %ile</span>
             )}

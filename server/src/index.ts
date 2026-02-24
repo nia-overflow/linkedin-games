@@ -149,6 +149,7 @@ app.get('/api/history', (req, res) => {
     score: r.score,
     completionTimeSecs: r.completion_time_secs,
     percentile: r.percentile,
+    myRank: r.my_rank,
   })));
 });
 

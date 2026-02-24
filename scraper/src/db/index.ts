@@ -21,6 +21,7 @@ export interface GameResult {
   score?: number;
   completionTimeSecs?: number;
   percentile?: number;       // 0–100: % of leaderboard connections beaten
+  myRank?: number;           // user's rank among connections who played
   rawData?: unknown;
 }
 
@@ -70,15 +71,16 @@ export function upsertGameResult(result: GameResult): void {
   const db = getDb();
   db.prepare(`
     INSERT INTO game_results
-      (game_name, played_date, captured_at, completed, score, completion_time_secs, percentile, raw_data)
+      (game_name, played_date, captured_at, completed, score, completion_time_secs, percentile, my_rank, raw_data)
     VALUES
-      (@gameName, @playedDate, @capturedAt, @completed, @score, @completionTimeSecs, @percentile, @rawData)
+      (@gameName, @playedDate, @capturedAt, @completed, @score, @completionTimeSecs, @percentile, @myRank, @rawData)
     ON CONFLICT(game_name, played_date) DO UPDATE SET
       captured_at           = excluded.captured_at,
       completed             = excluded.completed,
       score                 = excluded.score,
       completion_time_secs  = excluded.completion_time_secs,
       percentile            = excluded.percentile,
+      my_rank               = excluded.my_rank,
       raw_data              = excluded.raw_data
   `).run({
     gameName: result.gameName,
@@ -88,6 +90,7 @@ export function upsertGameResult(result: GameResult): void {
     score: result.score ?? null,
     completionTimeSecs: result.completionTimeSecs ?? null,
     percentile: result.percentile ?? null,
+    myRank: result.myRank ?? null,
     rawData: result.rawData ? JSON.stringify(result.rawData) : null,
   });
 }
@@ -163,6 +166,7 @@ export interface GameResultRow {
   score: number | null;
   completion_time_secs: number | null;
   percentile: number | null;
+  my_rank: number | null;
   raw_data: string | null;
 }
 
