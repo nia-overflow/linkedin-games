@@ -113,13 +113,13 @@ export function HistoryChart({ game }: Props) {
       <div className="chart-container">
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e8" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a2640" />
+            <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#8b87a8" }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#8b87a8" }} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Bar dataKey="completed" name="Completed" stackId="a" fill="#0a66c2" />
-            <Bar dataKey="missed" name="Missed" stackId="a" fill="#e8e8e8" />
+            <Bar dataKey="completed" name="Completed" stackId="a" fill="#7c3aed" />
+            <Bar dataKey="missed" name="Missed" stackId="a" fill="#2a2640" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -131,10 +131,10 @@ export function HistoryChart({ game }: Props) {
     <div className="chart-container">
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e8e8e8" />
-          <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a2640" />
+          <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#8b87a8" }} />
           <YAxis
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 11, fill: "#8b87a8" }}
             tickFormatter={(v) => isPinpoint ? String(v) : formatTime(v as number)}
           />
           <Tooltip content={<CustomTooltip isPinpoint={isPinpoint} />} />
@@ -142,14 +142,14 @@ export function HistoryChart({ game }: Props) {
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.completed ? '#0a66c2' : '#e8e8e8'}
+                fill={entry.completed ? '#7c3aed' : '#2a2640'}
               />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
       <p className="chart-legend-note">
-        <span style={{ color: '#0a66c2' }}>■</span> Completed &nbsp;
+        <span style={{ color: '#7c3aed' }}>■</span> Completed &nbsp;
         <span style={{ color: '#ccc' }}>■</span> Not played
       </p>
     </div>
