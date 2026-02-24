@@ -89,7 +89,7 @@ export function StatsBar({ game }: Props) {
             {stats.avgRank !== null ? `#${stats.avgRank}` : '—'}
           </div>
           <div className="stat-label">Avg Rank</div>
-          <div className="stat-sub">vs connections</div>
+          <div className="stat-sub">among connections</div>
         </div>
       )}
 
@@ -98,7 +98,7 @@ export function StatsBar({ game }: Props) {
           {stats.avgPercentile !== null ? `${stats.avgPercentile}th` : '—'}
         </div>
         <div className="stat-label">Avg Percentile</div>
-        <div className="stat-sub">vs connections</div>
+        <div className="stat-sub">worldwide</div>
       </div>
     </div>
   )
