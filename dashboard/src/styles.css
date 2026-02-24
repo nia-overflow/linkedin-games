@@ -390,3 +390,205 @@
     display: none; /* hide Time on mobile for space */
   }
 }
+
+/* ── Today's Results cards ───────────────────────────────────────────────── */
+.today-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.today-card {
+  flex: 1 1 130px;
+  min-width: 110px;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.today-card--completed {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.today-card--incomplete {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
+.today-card--unplayed {
+  opacity: 0.55;
+}
+
+.today-card--loading {
+  min-height: 88px;
+}
+
+.today-card__status {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.today-card__name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.today-card__time {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: var(--li-blue);
+}
+
+.today-card__time--none {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+@media (max-width: 640px) {
+  .today-card {
+    flex: 1 1 90px;
+    min-width: 80px;
+    padding: 10px 8px;
+  }
+
+  .today-card__time {
+    font-size: 0.875rem;
+  }
+}
+
+/* ── Dev tab ─────────────────────────────────────────────────────────────── */
+.tab--dev {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.tab--dev:hover {
+  opacity: 1;
+}
+
+.tab--dev.tab--active {
+  background: #4b5563;
+  color: #fff;
+  opacity: 1;
+}
+
+.tab--dev.tab--active:hover {
+  background: #374151;
+}
+
+.dev-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dev-empty {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  padding: 12px 0;
+}
+
+.dev-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.dev-log-table th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.dev-log-row td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.dev-log-row:last-child td {
+  border-bottom: none;
+}
+
+.dev-log-row--error {
+  background: #fef2f2;
+}
+
+.dev-log-row--no_result {
+  background: #fffbeb;
+}
+
+.dev-log-time {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+}
+
+.dev-log-game {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dev-log-records {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.dev-log-msg {
+  color: #7f1d1d;
+  word-break: break-all;
+}
+
+.dev-status {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.dev-status--success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.dev-status--error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.dev-status--no_result {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+@media (max-width: 640px) {
+  .dev-log-table th:nth-child(4),
+  .dev-log-row td:nth-child(4) {
+    display: none; /* hide Records column on mobile */
+  }
+}
