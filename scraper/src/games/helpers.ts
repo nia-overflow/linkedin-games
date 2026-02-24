@@ -192,11 +192,20 @@ export async function scrapeResultsPage(
   }
 
   // The results page initially shows a snapshot (top 3 connections).
-  // Click "See full leaderboard" to expand the complete list.
+  // Click "See full leaderboard" to expand, then scroll until no new entries
+  // appear — LinkedIn lazy-loads entries as you scroll, with no fixed limit.
   try {
     const btn = page.getByRole('button', { name: 'See full leaderboard' });
     if (await btn.count() > 0) {
       await btn.first().click();
+      // Wait for the first page of ranked entries to render.
+      // No scrolling — the list is sorted so the first page contains all
+      // connections who actually played. Scrolling further loads un-played
+      // connections with no score, which is noise we don't want.
+      //
+      // TODO: ideal version scrolls until it hits the first entry with no
+      // score/time, capturing every connection who played without including
+      // those who haven't.
       await page.waitForTimeout(2000);
     }
   } catch {
