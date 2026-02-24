@@ -25,7 +25,7 @@ function formatTime(secs: number | null): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, isPinpoint }: any) {
   if (!active || !payload?.length) return null
   const data = payload[0]?.payload as ChartPoint
   return (
@@ -33,7 +33,11 @@ function CustomTooltip({ active, payload, label }: any) {
       <p className="chart-tooltip-date">{label}</p>
       {data.gameName && <p>Game: {data.gameName}</p>}
       <p>{data.completed ? '✅ Completed' : '❌ Not completed'}</p>
-      {data.timeSecs && <p>Time: {formatTime(data.timeSecs)}</p>}
+      {data.timeSecs !== null && data.timeSecs !== undefined && (
+        isPinpoint
+          ? <p>Guesses: {data.timeSecs}</p>
+          : <p>Time: {formatTime(data.timeSecs)}</p>
+      )}
     </div>
   )
 }
@@ -70,8 +74,10 @@ export function HistoryChart({ game }: Props) {
   }
 
   // For "all games" view: aggregate by date, count games completed per day
-  // For single game: show completion time trend
+  // For single game: show completion time trend (or guess count for Pinpoint)
   let chartData: ChartPoint[]
+
+  const isPinpoint = game === 'pinpoint'
 
   if (game === 'all') {
     const byDate: Record<string, { completed: number; missed: number }> = {}
@@ -96,7 +102,8 @@ export function HistoryChart({ game }: Props) {
         date: h.playedDate.slice(5),
         completed: h.completed ? 1 : 0,
         missed: h.completed ? 0 : 1,
-        timeSecs: h.completionTimeSecs,
+        // Pinpoint stores guess count in `score`; all other games store seconds in `completionTimeSecs`
+        timeSecs: isPinpoint ? h.score : h.completionTimeSecs,
         gameName: h.gameName,
       }))
   }
@@ -119,7 +126,7 @@ export function HistoryChart({ game }: Props) {
     )
   }
 
-  // Single game: color bars by completion, height by time
+  // Single game: color bars by completion, height by time (or guess count for Pinpoint)
   return (
     <div className="chart-container">
       <ResponsiveContainer width="100%" height={220}>
@@ -128,10 +135,10 @@ export function HistoryChart({ game }: Props) {
           <XAxis dataKey="date" tick={{ fontSize: 11 }} />
           <YAxis
             tick={{ fontSize: 11 }}
-            tickFormatter={(v) => formatTime(v as number)}
+            tickFormatter={(v) => isPinpoint ? String(v) : formatTime(v as number)}
           />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="timeSecs" name="Completion Time">
+          <Tooltip content={<CustomTooltip isPinpoint={isPinpoint} />} />
+          <Bar dataKey="timeSecs" name={isPinpoint ? 'Guesses' : 'Completion Time'}>
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
