@@ -1,140 +1,76 @@
 # LinkedIn Games Dashboard
 
-A **local-only** dashboard for your LinkedIn daily game results.
+A personal dashboard for your LinkedIn daily game results — tracks your scores, ranks you against connections, and shows history over time.
 
-No LinkedIn API required — a Playwright scraper visits the game pages nightly using your logged-in Chrome profile, captures results + leaderboard data, and saves to a local SQLite database.
+No LinkedIn API required. A Playwright scraper visits the game pages each night using your saved Chrome session, captures results and leaderboard data, and stores everything locally in SQLite.
 
 ```
-11:55 PM → Mac wakes (pmset)
-         → launchd triggers scraper
-         → Playwright opens Chrome (your LinkedIn profile)
-         → Visits 6 game pages, captures results + leaderboard
-         → Saves to ~/.linkedin-games/games.db
-         → Browser closes, Mac sleeps
+11:55 PM → Mac wakes
+         → Scraper opens Chrome (your LinkedIn session)
+         → Visits Queens, Tango, Pinpoint, Crossclimb, Zip, Mini-Sudoku
+         → Saves scores, rank, percentile, and leaderboard to SQLite
+         → Browser closes
 
 Any time → Open http://localhost:3000
-         → Dashboard reads SQLite, shows stats + leaderboard history
+         → See your stats, history charts, and leaderboard standings
 ```
 
 ---
 
-## Prerequisites
+## Requirements
 
-- macOS (for launchd + pmset scheduling)
-- Node.js 18+
-- pnpm (`npm install -g pnpm`)
+- **macOS** (scheduling uses launchd + pmset — Windows/Linux not supported)
+- **Node.js 18+** — [nodejs.org](https://nodejs.org)
+- **A LinkedIn account** with games played
 
 ---
 
-## Setup (one command)
+## Setup
 
 ```bash
+git clone https://github.com/nia-overflow/linkedin-games.git
+cd linkedin-games
 bash scripts/setup.sh
 ```
 
-This will:
-1. Check prerequisites
-2. Install Node dependencies
-3. Install Playwright's Chromium browser
-4. Build the dashboard
-5. Open Chrome so you can log in to LinkedIn (saved profile for scraping)
-6. Install launchd daemons (server at login, scraper at 11:55 PM)
-7. Schedule Mac wake at 11:55 PM via `pmset`
+That's it. The script will:
 
-After setup: open **http://localhost:3000**
+1. Install dependencies
+2. Download Playwright's Chromium browser
+3. Build the dashboard
+4. Open Chrome so you can log in to LinkedIn (session is saved locally)
+5. Install launchd agents (server starts at login, scraper runs at 11:55 PM)
+6. Schedule a Mac wake at 11:55 PM via `pmset`
+
+When it's done, open **[http://localhost:3000](http://localhost:3000)**.
 
 ---
 
-## Manual steps
+## First scrape
 
-### One-time LinkedIn login
-```bash
-pnpm setup:profile
-```
-Opens Chrome at `~/.linkedin-games/chrome-profile`. Log in to LinkedIn, then press Enter.
+After setup, run the scraper once manually to populate your dashboard:
 
-### Run the scraper manually
 ```bash
 pnpm scrape
 ```
 
-### DOM discovery (before first scrape)
-Run this once while logged in to capture screenshots and HTML of each game page:
-```bash
-pnpm discover
-```
-This saves to `scraper/discovery/`. Review the HTML to confirm/update the selectors in the scrapers if LinkedIn changes their DOM.
-
-### Start the server in dev mode
-```bash
-pnpm dev
-```
-Server runs at http://localhost:3000. Dashboard dev server at http://localhost:5173 (with hot reload).
+After that, it runs automatically every night at 11:55 PM.
 
 ---
 
-## Project Structure
+## What you see
 
-```
-linkedin-games/
-├── scraper/             # Playwright scraper
-│   └── src/
-│       ├── games/       # One scraper per game + helpers
-│       ├── db/          # SQLite schema + typed query functions
-│       └── index.ts     # Orchestrator
-├── server/              # Express API server (port 3000)
-│   └── src/
-│       └── index.ts     # All API routes + SPA serving
-├── dashboard/           # Vite + React dashboard
-│   └── src/
-│       ├── components/  # StatsBar, HistoryChart, LeaderboardTable, StalenessWarning
-│       ├── api.ts       # API client
-│       └── App.tsx      # Main app with game tabs
-├── scripts/
-│   ├── setup.sh         # One-command setup
-│   ├── install-daemons.sh
-│   ├── setup-profile.ts
-│   ├── discover-games.ts
-│   └── plist/           # launchd plist files
-└── package.json         # pnpm workspace root
-```
+**All Games tab**
+- Today's result for each game — completion time, rank among connections, percentile
+- 30-day history chart
+- Aggregate stats: streak, win rate, avg time, avg percentile
 
----
+**Per-game tabs** (Queens, Tango, Pinpoint, Crossclimb, Zip, Mini-Sudoku)
+- 5 stat cards: streak · win rate · avg time (avg guesses for Pinpoint) · avg rank · avg percentile
+- Completion time history chart
+- Today's leaderboard with your connections
 
-## Data
-
-SQLite database: `~/.linkedin-games/games.db`
-
-Tables:
-- `game_results` — one row per game per day (your result)
-- `leaderboard_entries` — leaderboard snapshots per game per day
-- `scrape_log` — run history with success/error status
-
----
-
-## Scraper notes
-
-The scrapers in `scraper/src/games/` use best-guess CSS selectors for LinkedIn's game pages. LinkedIn may change their DOM without notice.
-
-**If scraping breaks:**
-1. Run `pnpm discover` to take fresh screenshots and save HTML
-2. Inspect `scraper/discovery/<game>-html.html` to find the current selectors
-3. Update the selector logic in the relevant scraper file
-4. Re-run `pnpm scrape` to verify
-
----
-
-## 6th game
-
-After running `pnpm discover`, check `scraper/discovery/hub-screenshot.png` and the printed game URLs to confirm the 6th game name. Update `scraper/src/games/wordle.ts` (rename the file and update `GAME_URL`/`GAME_NAME`) accordingly.
-
----
-
-## Logs
-
-- Scraper: `~/.linkedin-games/logs/scraper.log`
-- Server: `~/.linkedin-games/logs/server.log`
-- Dashboard: `/api/logs` (last 7 days of scrape runs)
+**Dev tab** — full scrape log for debugging
 
 ---
 
@@ -145,3 +81,61 @@ LinkedIn sessions expire occasionally. If the scraper stops capturing data:
 ```bash
 pnpm setup:profile
 ```
+
+This opens Chrome so you can log back in. No other changes needed.
+
+---
+
+## Manual commands
+
+```bash
+pnpm scrape          # Run scraper now (captures today's results)
+pnpm dev             # Start dev server with hot reload (port 5173)
+pnpm build           # Rebuild dashboard for production
+```
+
+---
+
+## Project structure
+
+```
+linkedin-games/
+├── scraper/src/
+│   ├── games/       # One scraper per game + shared helpers
+│   ├── db/          # SQLite schema and query functions
+│   └── index.ts     # Scraper orchestrator
+├── server/src/
+│   └── index.ts     # Express API + serves built dashboard
+├── dashboard/src/
+│   ├── components/  # StatsBar, HistoryChart, LeaderboardTable, TodayResults
+│   ├── api.ts       # API client
+│   └── App.tsx      # Main app
+└── scripts/
+    ├── setup.sh         # One-command setup
+    ├── install-daemons.sh
+    └── setup-profile.ts # LinkedIn login helper
+```
+
+Data lives at `~/.linkedin-games/`:
+- `games.db` — SQLite database (game results, leaderboard snapshots, scrape log)
+- `chrome-profile/` — saved LinkedIn session
+- `logs/` — scraper and server logs
+
+---
+
+## If scraping breaks
+
+LinkedIn occasionally changes their page structure. If you see scrape errors:
+
+1. Run `pnpm discover` to capture fresh screenshots and HTML of each game page
+2. Check `scraper/discovery/` for the current DOM structure
+3. Update selectors in `scraper/src/games/<game>.ts` if needed
+4. Run `pnpm scrape` to verify
+
+---
+
+## Notes
+
+- Each install is fully independent — your data never leaves your machine
+- The leaderboard only shows connections LinkedIn displays on the results page (up to ~25)
+- Percentile is calculated as: `((total shown - your rank) / total shown) × 100`
