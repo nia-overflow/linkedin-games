@@ -166,6 +166,14 @@ export async function extractLeaderboard(
  * If the results page doesn't load within 20s (game not yet played, or
  * redirect back to the puzzle), returns completed: false.
  */
+/** Network error codes worth retrying (transient connection issues). */
+const RETRYABLE_ERRORS = [
+  'net::ERR_NETWORK_CHANGED',
+  'net::ERR_INTERNET_DISCONNECTED',
+  'net::ERR_CONNECTION_RESET',
+  'net::ERR_CONNECTION_REFUSED',
+];
+
 export async function scrapeResultsPage(
   page: Page,
   gameName: string,
@@ -174,7 +182,23 @@ export async function scrapeResultsPage(
   const playedDate = todayDateString();
   const capturedAt = nowIsoString();
 
-  await page.goto(resultsUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  // Retry navigation up to 3 times for transient network errors.
+  const MAX_NAV_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_NAV_ATTEMPTS; attempt++) {
+    try {
+      await page.goto(resultsUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      break; // navigation succeeded
+    } catch (err) {
+      const msg = (err as Error).message ?? '';
+      const isRetryable = RETRYABLE_ERRORS.some(code => msg.includes(code));
+      if (isRetryable && attempt < MAX_NAV_ATTEMPTS) {
+        console.warn(`  ↻ ${gameName}: network error on attempt ${attempt}, retrying in 5s...`);
+        await page.waitForTimeout(5_000);
+        continue;
+      }
+      throw err; // non-retryable or out of attempts
+    }
+  }
 
   // Queens/Tango use React Server Components and take longer to hydrate than
   // Crossclimb/Zip/Pinpoint/Mini-Sudoku. 20s covers all cases observed.
