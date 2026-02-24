@@ -26,6 +26,7 @@ export interface GameHistoryEntry {
   score: number | null
   completionTimeSecs: number | null
   percentile: number | null
+  globalPercentile: number | null
   myRank: number | null
 }
 

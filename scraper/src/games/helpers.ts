@@ -155,6 +155,22 @@ export async function extractLeaderboard(
 }
 
 /**
+ * Extract the global percentile from the "You outplayed X% of players worldwide" tag.
+ * This is shown on the self row in the leaderboard as a subtitle insight badge.
+ * Returns undefined if not found (game not played, or LinkedIn changed DOM).
+ */
+export async function extractGlobalPercentile(page: Page): Promise<number | undefined> {
+  return page.evaluate(() => {
+    const tag = document.querySelector(
+      '.pr-connections-leaderboard-player__subtitle-insight-tag'
+    );
+    if (!tag) return undefined;
+    const m = tag.textContent?.match(/outplayed\s+(\d+)%/i);
+    return m ? parseInt(m[1], 10) : undefined;
+  });
+}
+
+/**
  * Scrape a LinkedIn game by navigating directly to its /results/ page.
  *
  * Strategy confirmed by discovery (scraper/discovery/*-after-click.json):
@@ -237,6 +253,7 @@ export async function scrapeResultsPage(
   }
 
   const leaderboard = await extractLeaderboard(page, gameName, playedDate, capturedAt);
+  const globalPercentile = await extractGlobalPercentile(page);
 
   // Self entry carries the user's own time (or guess count for Pinpoint)
   const selfEntry = leaderboard.find(e => e.isSelf);
@@ -248,6 +265,7 @@ export async function scrapeResultsPage(
     completed: true,
     completionTimeSecs: selfEntry?.completionTimeSecs,
     score: selfEntry?.score,
+    globalPercentile,
     leaderboard,
     rawData: { url: page.url() },
   };

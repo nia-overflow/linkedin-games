@@ -22,6 +22,7 @@ export interface GameResult {
   completionTimeSecs?: number;
   percentile?: number;       // 0–100: % of leaderboard connections beaten
   myRank?: number;           // user's rank among connections who played
+  globalPercentile?: number; // "You outplayed X% of players worldwide"
   rawData?: unknown;
 }
 
@@ -71,9 +72,9 @@ export function upsertGameResult(result: GameResult): void {
   const db = getDb();
   db.prepare(`
     INSERT INTO game_results
-      (game_name, played_date, captured_at, completed, score, completion_time_secs, percentile, my_rank, raw_data)
+      (game_name, played_date, captured_at, completed, score, completion_time_secs, percentile, my_rank, global_percentile, raw_data)
     VALUES
-      (@gameName, @playedDate, @capturedAt, @completed, @score, @completionTimeSecs, @percentile, @myRank, @rawData)
+      (@gameName, @playedDate, @capturedAt, @completed, @score, @completionTimeSecs, @percentile, @myRank, @globalPercentile, @rawData)
     ON CONFLICT(game_name, played_date) DO UPDATE SET
       captured_at           = excluded.captured_at,
       completed             = excluded.completed,
@@ -81,6 +82,7 @@ export function upsertGameResult(result: GameResult): void {
       completion_time_secs  = excluded.completion_time_secs,
       percentile            = excluded.percentile,
       my_rank               = excluded.my_rank,
+      global_percentile     = excluded.global_percentile,
       raw_data              = excluded.raw_data
   `).run({
     gameName: result.gameName,
@@ -91,6 +93,7 @@ export function upsertGameResult(result: GameResult): void {
     completionTimeSecs: result.completionTimeSecs ?? null,
     percentile: result.percentile ?? null,
     myRank: result.myRank ?? null,
+    globalPercentile: result.globalPercentile ?? null,
     rawData: result.rawData ? JSON.stringify(result.rawData) : null,
   });
 }
@@ -167,6 +170,7 @@ export interface GameResultRow {
   completion_time_secs: number | null;
   percentile: number | null;
   my_rank: number | null;
+  global_percentile: number | null;
   raw_data: string | null;
 }
 

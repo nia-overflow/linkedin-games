@@ -89,6 +89,7 @@ async function runScraper(): Promise<void> {
         completionTimeSecs: result.completionTimeSecs,
         percentile,
         myRank,
+        globalPercentile: result.globalPercentile,
         rawData: result.rawData,
       });
 

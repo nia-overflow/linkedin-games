@@ -111,11 +111,13 @@ app.get('/api/stats', (req, res) => {
     ? Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length)
     : null;
 
-  const percentiles = rows
-    .filter(r => r.percentile !== null)
-    .map(r => r.percentile as number);
-  const avgPercentile = percentiles.length > 0
-    ? Math.round(percentiles.reduce((a, b) => a + b, 0) / percentiles.length)
+  // Global percentile from LinkedIn ("outplayed X% worldwide") — preferred over
+  // the connections-based percentile we compute ourselves.
+  const globalPercentiles = rows
+    .filter(r => r.global_percentile !== null)
+    .map(r => r.global_percentile as number);
+  const avgPercentile = globalPercentiles.length > 0
+    ? Math.round(globalPercentiles.reduce((a, b) => a + b, 0) / globalPercentiles.length)
     : null;
 
   const ranks = rows
@@ -168,6 +170,7 @@ app.get('/api/history', (req, res) => {
     score: r.score,
     completionTimeSecs: r.completion_time_secs,
     percentile: r.percentile,
+    globalPercentile: r.global_percentile,
     myRank: r.my_rank,
   })));
 });

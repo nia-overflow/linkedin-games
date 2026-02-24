@@ -85,8 +85,8 @@ export function TodayResults({ games }: Props) {
             {entry.myRank !== null && entry.myRank !== undefined && (
               <span className="today-card__rank">Rank #{entry.myRank}</span>
             )}
-            {entry.percentile !== null && entry.percentile !== undefined && (
-              <span className="today-card__percentile">{entry.percentile}th %ile</span>
+            {(entry.globalPercentile ?? entry.percentile) !== null && (entry.globalPercentile ?? entry.percentile) !== undefined && (
+              <span className="today-card__percentile">top {100 - (entry.globalPercentile ?? entry.percentile)!}% worldwide</span>
             )}
           </div>
         )

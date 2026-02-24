@@ -23,6 +23,7 @@ export interface ScrapeResult {
   completed: boolean;
   score?: number;
   completionTimeSecs?: number;
+  globalPercentile?: number; // "You outplayed X% of players worldwide"
   leaderboard: LeaderboardEntry[];
   rawData: unknown;
 }
