@@ -7,7 +7,7 @@ import { api } from './api'
 import type { ScrapeLogEntry } from './api'
 import './styles.css'
 
-const KNOWN_GAMES = ['queens', 'tango', 'pinpoint', 'crossclimb', 'zip', 'wordle']
+const KNOWN_GAMES = ['queens', 'tango', 'pinpoint', 'crossclimb', 'zip', 'mini-sudoku']
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)

@@ -1,15 +1,17 @@
 /**
  * Shared helpers for game scrapers.
  *
- * LinkedIn's game pages are React SPAs — they load asynchronously and
- * the DOM structure may change. These helpers provide:
- * - Robust wait strategies with timeouts and retries
- * - leaderboard extraction logic shared across games
- * - Time string parsing (e.g. "1:23" → 83 seconds)
+ * All 6 LinkedIn games use the same /games/{name}/results/ URL pattern and
+ * the same pr-game-results__section + pr-connections-leaderboard-player__*
+ * class naming on their results pages. This was confirmed by running the
+ * discovery scripts (scraper/discovery/*-after-click.json).
+ *
+ * The unified `scrapeResultsPage()` handles all games. Individual game
+ * files just call it with game-specific config.
  */
 
 import type { Page } from 'playwright';
-import type { LeaderboardEntry } from './types.js';
+import type { LeaderboardEntry, ScrapeResult } from './types.js';
 
 /** Today's date in YYYY-MM-DD format (local time). */
 export function todayDateString(): string {
@@ -54,14 +56,16 @@ export async function waitForSelectorSafe(
 }
 
 /**
- * Attempt to extract leaderboard entries from a LinkedIn game page.
+ * Extract leaderboard entries from a LinkedIn game results page.
  *
- * LinkedIn renders leaderboards in a list of player entries. The exact
- * class names vary by game but follow similar patterns. This function
- * tries multiple selector strategies and returns the best result.
+ * All 6 games use the same BEM class structure:
+ *   .pr-connections-leaderboard-player__container  → one row per player
+ *   .pr-connections-leaderboard-player__ranking    → rank number (may be empty for "You")
+ *   .pr-connections-leaderboard-player__text-wrapper → player name ("You" for self)
+ *   .pr-connections-leaderboard-player__score      → M:SS time OR integer guess count (Pinpoint)
  *
- * After running the discovery script (Step 1.2), update the selectors
- * in LEADERBOARD_SELECTORS based on what was actually found.
+ * Confirmed for: Crossclimb, Zip, Pinpoint, Mini-Sudoku.
+ * Queens/Tango use the same framework and should work with a longer wait.
  */
 export async function extractLeaderboard(
   page: Page,
@@ -69,89 +73,56 @@ export async function extractLeaderboard(
   playedDate: string,
   capturedAt: string,
 ): Promise<LeaderboardEntry[]> {
-  // Scroll to load lazy leaderboard content
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.waitForTimeout(2000);
-
-  // Try to find leaderboard container
-  // These selectors are based on LinkedIn's common game page structure.
-  // Run `pnpm discover` and inspect the HTML to confirm/update them.
   const entries = await page.evaluate(
     ({ gameName, playedDate, capturedAt }) => {
-      const results: Array<{
+      type RawEntry = {
         rank?: number;
         connectionName: string;
         connectionProfileUrl?: string;
         score?: number;
         completionTimeSecs?: number;
         isSelf: boolean;
-      }> = [];
+      };
 
-      // Strategy 1: look for elements with "leaderboard" in their class/data attrs
-      let rows = document.querySelectorAll(
-        '[class*="leaderboard"] [class*="player"], ' +
-        '[class*="leaderboard"] [class*="entry"], ' +
-        '[class*="leaderboard"] [class*="row"], ' +
-        '[data-test*="leaderboard"] li, ' +
-        '.games-leaderboard__entry'
+      const results: RawEntry[] = [];
+      const containers = document.querySelectorAll(
+        '.pr-connections-leaderboard-player__container'
       );
 
-      // Strategy 2: if that yields nothing, look for a list of players in the result section
-      if (rows.length === 0) {
-        rows = document.querySelectorAll(
-          '[class*="result"] [class*="player"], ' +
-          '[class*="result"] li, ' +
-          '[class*="score"] [class*="player"]'
-        );
-      }
+      containers.forEach((container, idx) => {
+        const rankEl = container.querySelector('.pr-connections-leaderboard-player__ranking');
+        const nameEl = container.querySelector('.pr-connections-leaderboard-player__text-wrapper');
+        const scoreEl = container.querySelector('.pr-connections-leaderboard-player__score');
+        const linkEl = container.querySelector('a[href*="/in/"]') as HTMLAnchorElement | null;
 
-      // Strategy 3: look for any anchor with /in/ profile URLs (connection names)
-      if (rows.length === 0) {
-        const links = document.querySelectorAll('a[href*="/in/"]');
-        links.forEach((link, idx) => {
-          const el = link as HTMLAnchorElement;
-          results.push({
-            rank: idx + 1,
-            connectionName: el.textContent?.trim() || 'Unknown',
-            connectionProfileUrl: el.href,
-            isSelf: el.classList.contains('is-self') || el.closest('[class*="self"]') !== null,
-          });
-        });
-        return results;
-      }
+        const name = nameEl?.textContent?.trim() ?? '';
+        // Skip empty or "See full leaderboard" button rows
+        if (!name || name === 'See full leaderboard') return;
 
-      rows.forEach((row, idx) => {
-        const nameEl = row.querySelector('[class*="name"], [class*="player-name"], strong, b');
-        const linkEl = row.querySelector('a[href*="/in/"]') as HTMLAnchorElement | null;
-        const timeEl = row.querySelector('[class*="time"], [class*="score"], [class*="duration"]');
-        const rankEl = row.querySelector('[class*="rank"], [class*="position"]');
+        const isSelf = name === 'You';
+        const rankText = rankEl?.textContent?.trim() ?? '';
+        const scoreText = scoreEl?.textContent?.trim() ?? '';
 
-        const name = nameEl?.textContent?.trim() || linkEl?.textContent?.trim() || 'Unknown';
-        const profileUrl = linkEl?.href;
-        const timeText = timeEl?.textContent?.trim();
-        const rankText = rankEl?.textContent?.trim();
+        const rankNum = rankText ? (parseInt(rankText.replace(/\D/g, ''), 10) || idx + 1) : idx + 1;
 
-        // Parse time string "1:23" → 83 seconds
+        // Pinpoint uses integer guess counts; all other games use M:SS time strings
         let completionTimeSecs: number | undefined;
-        if (timeText) {
-          const match = timeText.match(/(\d+):(\d{2})/);
-          if (match) {
-            completionTimeSecs = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+        let score: number | undefined;
+
+        if (scoreText) {
+          const timeMatch = scoreText.match(/^(\d+):(\d{2})$/);
+          if (timeMatch) {
+            completionTimeSecs = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+          } else if (/^\d+$/.test(scoreText)) {
+            score = parseInt(scoreText, 10);
           }
         }
 
-        const rank = rankText ? parseInt(rankText.replace(/\D/g, ''), 10) || idx + 1 : idx + 1;
-
-        // LinkedIn typically marks your own row with a specific class or "You" text
-        const isSelf = name === 'You' ||
-          row.classList.contains('is-self') ||
-          row.closest('[class*="self"]') !== null ||
-          (row as HTMLElement).getAttribute('data-is-self') === 'true';
-
         results.push({
-          rank,
-          connectionName: name,
-          connectionProfileUrl: profileUrl,
+          rank: rankNum,
+          connectionName: isSelf ? 'You' : name,
+          connectionProfileUrl: linkEl?.href,
+          score,
           completionTimeSecs,
           isSelf,
         });
@@ -173,4 +144,58 @@ export async function extractLeaderboard(
     completionTimeSecs: e.completionTimeSecs,
     isSelf: e.isSelf,
   }));
+}
+
+/**
+ * Scrape a LinkedIn game by navigating directly to its /results/ page.
+ *
+ * Strategy confirmed by discovery (scraper/discovery/*-after-click.json):
+ * - Navigate to https://www.linkedin.com/games/{name}/results/
+ * - Wait up to 20s for .pr-game-results__section to appear
+ * - Extract leaderboard using .pr-connections-leaderboard-player__* selectors
+ * - User's own time/score comes from the "You" entry (isSelf: true)
+ *
+ * If the results page doesn't load within 20s (game not yet played, or
+ * redirect back to the puzzle), returns completed: false.
+ */
+export async function scrapeResultsPage(
+  page: Page,
+  gameName: string,
+  resultsUrl: string,
+): Promise<ScrapeResult> {
+  const playedDate = todayDateString();
+  const capturedAt = nowIsoString();
+
+  await page.goto(resultsUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+
+  // Queens/Tango use React Server Components and take longer to hydrate than
+  // Crossclimb/Zip/Pinpoint/Mini-Sudoku. 20s covers all cases observed.
+  const resultsLoaded = await waitForSelectorSafe(page, '.pr-game-results__section', 20_000);
+
+  if (!resultsLoaded) {
+    return {
+      gameName,
+      playedDate,
+      capturedAt,
+      completed: false,
+      leaderboard: [],
+      rawData: { url: page.url(), reason: '.pr-game-results__section not found within 20s' },
+    };
+  }
+
+  const leaderboard = await extractLeaderboard(page, gameName, playedDate, capturedAt);
+
+  // Self entry carries the user's own time (or guess count for Pinpoint)
+  const selfEntry = leaderboard.find(e => e.isSelf);
+
+  return {
+    gameName,
+    playedDate,
+    capturedAt,
+    completed: true,
+    completionTimeSecs: selfEntry?.completionTimeSecs,
+    score: selfEntry?.score,
+    leaderboard,
+    rawData: { url: page.url() },
+  };
 }

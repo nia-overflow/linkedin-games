@@ -23,7 +23,7 @@ import { scrape as scrapeTango }      from './games/tango.js';
 import { scrape as scrapePinpoint }   from './games/pinpoint.js';
 import { scrape as scrapeCrossclimb } from './games/crossclimb.js';
 import { scrape as scrapeZip }        from './games/zip.js';
-import { scrape as scrapeWordle }     from './games/wordle.js';
+import { scrape as scrapeMiniSudoku } from './games/mini-sudoku.js';
 
 const PROFILE_PATH = path.join(os.homedir(), '.linkedin-games', 'chrome-profile');
 
@@ -33,7 +33,7 @@ const GAMES = [
   { name: 'pinpoint',   fn: scrapePinpoint },
   { name: 'crossclimb', fn: scrapeCrossclimb },
   { name: 'zip',        fn: scrapeZip },
-  { name: 'wordle',     fn: scrapeWordle },
+  { name: 'mini-sudoku', fn: scrapeMiniSudoku },
 ] as const;
 
 async function runScraper(): Promise<void> {

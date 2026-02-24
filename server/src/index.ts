@@ -207,7 +207,7 @@ app.get('/api/games', (_req, res) => {
     return res.json(rows.map(r => r.game_name));
   } catch {
     // Return defaults if no data yet
-    return res.json(['queens', 'tango', 'pinpoint', 'crossclimb', 'zip', 'wordle']);
+    return res.json(['queens', 'tango', 'pinpoint', 'crossclimb', 'zip', 'mini-sudoku']);
   }
 });
 

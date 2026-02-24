@@ -33,9 +33,8 @@ const GAMES = [
   { name: 'tango',      url: 'https://www.linkedin.com/games/tango/' },
   { name: 'pinpoint',   url: 'https://www.linkedin.com/games/pinpoint/' },
   { name: 'crossclimb', url: 'https://www.linkedin.com/games/crossclimb/' },
-  { name: 'zip',        url: 'https://www.linkedin.com/games/zip/' },
-  // 6th game discovered from the hub URL below
-  // { name: 'unknown',  url: 'https://www.linkedin.com/games/' },
+  { name: 'zip',         url: 'https://www.linkedin.com/games/zip/' },
+  { name: 'mini-sudoku', url: 'https://www.linkedin.com/games/mini-sudoku/' },
 ];
 
 const HUB_URL = 'https://www.linkedin.com/games/';
