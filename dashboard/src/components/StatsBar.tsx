@@ -45,8 +45,11 @@ export function StatsBar({ game }: Props) {
     )
   }
 
+  const isPinpoint = game === 'pinpoint'
+  const isSpecificGame = game !== 'all'
+
   return (
-    <div className="stats-bar">
+    <div className={`stats-bar ${isSpecificGame ? 'stats-bar--5col' : ''}`}>
       <div className="stat-card">
         <div className="stat-value stat-value--streak">
           {stats.streak}
@@ -62,11 +65,33 @@ export function StatsBar({ game }: Props) {
         <div className="stat-sub">{stats.totalCompleted}/{stats.totalPlayed} completed</div>
       </div>
 
+      {/* Time card — Pinpoint shows avg guesses instead */}
       <div className="stat-card">
-        <div className="stat-value">{formatTime(stats.avgCompletionSecs)}</div>
-        <div className="stat-label">Avg Time</div>
-        <div className="stat-sub">last 30 days</div>
+        {isPinpoint ? (
+          <>
+            <div className="stat-value">{stats.avgScore ?? '—'}</div>
+            <div className="stat-label">Avg Guesses</div>
+            <div className="stat-sub">last 30 days</div>
+          </>
+        ) : (
+          <>
+            <div className="stat-value">{formatTime(stats.avgCompletionSecs)}</div>
+            <div className="stat-label">Avg Time</div>
+            <div className="stat-sub">last 30 days</div>
+          </>
+        )}
       </div>
+
+      {/* Rank — only shown for individual games */}
+      {isSpecificGame && (
+        <div className="stat-card">
+          <div className="stat-value">
+            {stats.avgRank !== null ? `#${stats.avgRank}` : '—'}
+          </div>
+          <div className="stat-label">Avg Rank</div>
+          <div className="stat-sub">vs connections</div>
+        </div>
+      )}
 
       <div className="stat-card">
         <div className="stat-value">

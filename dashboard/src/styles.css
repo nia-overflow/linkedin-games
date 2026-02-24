@@ -189,6 +189,10 @@ body {
   gap: 16px;
 }
 
+.stats-bar--5col {
+  grid-template-columns: repeat(5, 1fr);
+}
+
 .stats-bar--loading,
 .stats-bar--error {
   grid-template-columns: 1fr;
@@ -465,7 +469,8 @@ body {
   .header-title h1 { font-size: 1rem; }
   .header-meta { display: none; }
 
-  .stats-bar {
+  .stats-bar,
+  .stats-bar--5col {
     grid-template-columns: repeat(2, 1fr);
   }
 

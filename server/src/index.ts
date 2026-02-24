@@ -57,6 +57,9 @@ app.get('/api/stats', (req, res) => {
       streak: 0,
       winRate: 0,
       avgCompletionSecs: null,
+      avgScore: null,
+      avgRank: null,
+      avgPercentile: null,
       totalPlayed: 0,
       totalCompleted: 0,
       lastPlayedDate: null,
@@ -115,11 +118,27 @@ app.get('/api/stats', (req, res) => {
     ? Math.round(percentiles.reduce((a, b) => a + b, 0) / percentiles.length)
     : null;
 
+  const ranks = rows
+    .filter(r => r.my_rank !== null)
+    .map(r => r.my_rank as number);
+  const avgRank = ranks.length > 0
+    ? Math.round(ranks.reduce((a, b) => a + b, 0) / ranks.length)
+    : null;
+
+  const scores = rows
+    .filter(r => r.score !== null)
+    .map(r => r.score as number);
+  const avgScore = scores.length > 0
+    ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+    : null;
+
   return res.json({
     game,
     streak,
     winRate,
     avgCompletionSecs,
+    avgScore,
+    avgRank,
     avgPercentile,
     totalPlayed,
     totalCompleted,

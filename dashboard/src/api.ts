@@ -9,6 +9,8 @@ export interface GameStats {
   streak: number
   winRate: number
   avgCompletionSecs: number | null
+  avgScore: number | null
+  avgRank: number | null
   avgPercentile: number | null
   totalPlayed: number
   totalCompleted: number
