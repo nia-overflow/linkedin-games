@@ -95,7 +95,15 @@ export async function extractLeaderboard(
         const scoreEl = container.querySelector('.pr-connections-leaderboard-player__score');
         const linkEl = container.querySelector('a[href*="/in/"]') as HTMLAnchorElement | null;
 
-        const name = nameEl?.textContent?.trim() ?? '';
+        // Clone the __text-wrapper and strip the __subtitle child before
+        // reading text — the subtitle contains "🌎 You outplayed..." and
+        // "Flawless 💎" badges that must not be included in the player name.
+        let name = '';
+        if (nameEl) {
+          const clone = nameEl.cloneNode(true) as HTMLElement;
+          clone.querySelector('.pr-connections-leaderboard-player__subtitle')?.remove();
+          name = clone.textContent?.trim() ?? '';
+        }
         // Skip empty or "See full leaderboard" button rows
         if (!name || name === 'See full leaderboard') return;
 
