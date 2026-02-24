@@ -69,6 +69,15 @@ async function runScraper(): Promise<void> {
         await page.close();
       }
 
+      // Compute percentile: % of leaderboard connections beaten.
+      // Formula: ((total - selfRank) / total) * 100
+      // e.g. rank 3 of 25 → (25-3)/25*100 = 88th percentile
+      const selfEntry = result.leaderboard.find(e => e.isSelf);
+      const total = result.leaderboard.length;
+      const percentile = (selfEntry?.rank != null && total > 0)
+        ? Math.round(((total - selfEntry.rank) / total) * 100)
+        : undefined;
+
       // Persist game result
       upsertGameResult({
         gameName: result.gameName,
@@ -77,6 +86,7 @@ async function runScraper(): Promise<void> {
         completed: result.completed,
         score: result.score,
         completionTimeSecs: result.completionTimeSecs,
+        percentile,
         rawData: result.rawData,
       });
 

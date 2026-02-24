@@ -67,6 +67,14 @@ export function StatsBar({ game }: Props) {
         <div className="stat-label">Avg Time</div>
         <div className="stat-sub">last 30 days</div>
       </div>
+
+      <div className="stat-card">
+        <div className="stat-value">
+          {stats.avgPercentile !== null ? `${stats.avgPercentile}th` : '—'}
+        </div>
+        <div className="stat-label">Avg Percentile</div>
+        <div className="stat-sub">vs connections</div>
+      </div>
     </div>
   )
 }

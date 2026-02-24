@@ -108,11 +108,19 @@ app.get('/api/stats', (req, res) => {
     ? Math.round(completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length)
     : null;
 
+  const percentiles = rows
+    .filter(r => r.percentile !== null)
+    .map(r => r.percentile as number);
+  const avgPercentile = percentiles.length > 0
+    ? Math.round(percentiles.reduce((a, b) => a + b, 0) / percentiles.length)
+    : null;
+
   return res.json({
     game,
     streak,
     winRate,
     avgCompletionSecs,
+    avgPercentile,
     totalPlayed,
     totalCompleted,
     lastPlayedDate: rows[0]?.played_date || null,
@@ -140,6 +148,7 @@ app.get('/api/history', (req, res) => {
     completed: Boolean(r.completed),
     score: r.score,
     completionTimeSecs: r.completion_time_secs,
+    percentile: r.percentile,
   })));
 });
 

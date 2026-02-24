@@ -9,6 +9,7 @@ export interface GameStats {
   streak: number
   winRate: number
   avgCompletionSecs: number | null
+  avgPercentile: number | null
   totalPlayed: number
   totalCompleted: number
   lastPlayedDate: string | null
@@ -22,6 +23,7 @@ export interface GameHistoryEntry {
   completed: boolean
   score: number | null
   completionTimeSecs: number | null
+  percentile: number | null
 }
 
 export interface LeaderboardEntry {

@@ -457,6 +457,12 @@
   font-weight: 400;
 }
 
+.today-card__percentile {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
 @media (max-width: 640px) {
   .today-card {
     flex: 1 1 90px;

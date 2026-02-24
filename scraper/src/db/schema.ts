@@ -59,4 +59,11 @@ export function applySchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_scrape_log_run_at
       ON scrape_log(run_at DESC);
   `);
+
+  // ── Migrations ─────────────────────────────────────────────────────────────
+  // ALTER TABLE is idempotent via the existence check below.
+  const gameResultsCols = (db.prepare("PRAGMA table_info(game_results)").all() as { name: string }[]).map(c => c.name);
+  if (!gameResultsCols.includes('percentile')) {
+    db.exec(`ALTER TABLE game_results ADD COLUMN percentile INTEGER`);
+  }
 }
