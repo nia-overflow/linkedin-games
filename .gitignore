@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+*.log
+scraper/discovery/
+*.db
+~/.linkedin-games/
+
+# Dashboard build
+dashboard/dist/
+
+# macOS
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo

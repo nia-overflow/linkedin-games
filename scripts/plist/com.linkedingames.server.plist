@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent: runs the LinkedIn Games Express server at login.
+  Dashboard is served at http://localhost:3000
+
+  Install:
+    cp com.linkedingames.server.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.linkedingames.server.plist
+
+  Logs:
+    ~/.linkedin-games/logs/server.log
+    ~/.linkedin-games/logs/server-error.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.linkedingames.server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <!-- Use the absolute path to pnpm. Find yours with: which pnpm -->
+    <string>/opt/homebrew/bin/pnpm</string>
+    <string>--dir</string>
+    <!-- IMPORTANT: Update this path to your actual project directory -->
+    <string>LINKEDIN_GAMES_PROJECT_DIR</string>
+    <string>--filter</string>
+    <string>@linkedin-games/server</string>
+    <string>run</string>
+    <string>start</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>HOME_DIR</string>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <key>PORT</key>
+    <string>3000</string>
+  </dict>
+
+  <!-- Start automatically at login -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- Restart if it crashes -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>HOME_DIR/.linkedin-games/logs/server.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>HOME_DIR/.linkedin-games/logs/server-error.log</string>
+</dict>
+</plist>

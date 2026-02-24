@@ -1,0 +1,98 @@
+import React, { useEffect, useState } from 'react'
+import { api } from '../api'
+import type { LeaderboardEntry } from '../api'
+
+function formatTime(secs: number | null): string {
+  if (secs === null) return '—'
+  const m = Math.floor(secs / 60)
+  const s = secs % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
+function rankEmoji(rank: number | null): string {
+  if (rank === 1) return '🥇'
+  if (rank === 2) return '🥈'
+  if (rank === 3) return '🥉'
+  return String(rank ?? '—')
+}
+
+interface Props {
+  game: string
+  date?: string
+}
+
+export function LeaderboardTable({ game, date }: Props) {
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const displayDate = date || new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+    api.getLeaderboard(game, date)
+      .then(setEntries)
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [game, date])
+
+  if (loading) {
+    return <div className="leaderboard-placeholder skeleton" style={{ height: 160 }} />
+  }
+
+  if (error) {
+    return <div className="leaderboard-error">Unable to load leaderboard: {error}</div>
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="leaderboard-empty">
+        <p>No leaderboard data for {game} on {displayDate}.</p>
+        <p className="hint">Leaderboard is captured when the scraper runs at 11:55 PM.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="leaderboard">
+      <table className="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map(entry => (
+            <tr
+              key={entry.id}
+              className={`leaderboard-row ${entry.isSelf ? 'leaderboard-row--self' : ''}`}
+            >
+              <td className="leaderboard-rank">{rankEmoji(entry.rank)}</td>
+              <td className="leaderboard-name">
+                {entry.connectionProfileUrl ? (
+                  <a
+                    href={entry.connectionProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {entry.connectionName}
+                  </a>
+                ) : (
+                  entry.connectionName
+                )}
+                {entry.isSelf && <span className="self-badge">You</span>}
+              </td>
+              <td className="leaderboard-time">{formatTime(entry.completionTimeSecs)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="leaderboard-date">
+        {displayDate} · {entries.length} player{entries.length !== 1 ? 's' : ''}
+      </p>
+    </div>
+  )
+}

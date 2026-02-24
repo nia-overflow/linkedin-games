@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent: runs the LinkedIn Games scraper at 11:55 PM daily.
+
+  Install:
+    cp com.linkedingames.scraper.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.linkedingames.scraper.plist
+
+  Logs:
+    ~/.linkedin-games/logs/scraper.log
+    ~/.linkedin-games/logs/scraper-error.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.linkedingames.scraper</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <!-- Use the absolute path to pnpm. Find yours with: which pnpm -->
+    <string>/opt/homebrew/bin/pnpm</string>
+    <string>--dir</string>
+    <!-- IMPORTANT: Update this path to your actual project directory -->
+    <string>LINKEDIN_GAMES_PROJECT_DIR</string>
+    <string>scrape</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>HOME_DIR</string>
+  </dict>
+
+  <!-- Run at 23:55 daily (11:55 PM) -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>23</integer>
+    <key>Minute</key>
+    <integer>55</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>HOME_DIR/.linkedin-games/logs/scraper.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>HOME_DIR/.linkedin-games/logs/scraper-error.log</string>
+
+  <!-- Do NOT start at login — only at the scheduled time -->
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>
