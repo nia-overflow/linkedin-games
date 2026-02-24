@@ -156,7 +156,12 @@ app.get('/api/leaderboard', (req, res) => {
     return res.status(400).json({ error: 'game query param is required' });
   }
 
-  const date = (req.query['date'] as string) || new Date().toISOString().split('T')[0];
+  // Use local date (not UTC) to match how the scraper stores played_date.
+  const todayLocal = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+  const date = (req.query['date'] as string) || todayLocal;
 
   const rows = getLeaderboard(game, date);
 

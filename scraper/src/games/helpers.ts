@@ -191,6 +191,18 @@ export async function scrapeResultsPage(
     };
   }
 
+  // The results page initially shows a snapshot (top 3 connections).
+  // Click "See full leaderboard" to expand the complete list.
+  try {
+    const btn = page.getByRole('button', { name: 'See full leaderboard' });
+    if (await btn.count() > 0) {
+      await btn.first().click();
+      await page.waitForTimeout(2000);
+    }
+  } catch {
+    // Non-fatal — proceed with snapshot if button not found or click fails
+  }
+
   const leaderboard = await extractLeaderboard(page, gameName, playedDate, capturedAt);
 
   // Self entry carries the user's own time (or guess count for Pinpoint)

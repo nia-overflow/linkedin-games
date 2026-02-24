@@ -26,7 +26,11 @@ export function LeaderboardTable({ game, date }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const displayDate = date || new Date().toISOString().split('T')[0]
+  const todayLocal = (() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })()
+  const displayDate = date || todayLocal
 
   useEffect(() => {
     setLoading(true)
@@ -54,6 +58,15 @@ export function LeaderboardTable({ game, date }: Props) {
     )
   }
 
+  // Pinpoint uses guess counts (score) instead of completion times.
+  const isScoreBased = entries.every(e => e.completionTimeSecs === null && e.score !== null)
+
+  function formatScore(entry: LeaderboardEntry): string {
+    if (entry.completionTimeSecs !== null) return formatTime(entry.completionTimeSecs)
+    if (entry.score !== null) return `${entry.score} guess${entry.score !== 1 ? 'es' : ''}`
+    return '—'
+  }
+
   return (
     <div className="leaderboard">
       <table className="leaderboard-table">
@@ -61,7 +74,7 @@ export function LeaderboardTable({ game, date }: Props) {
           <tr>
             <th>Rank</th>
             <th>Name</th>
-            <th>Time</th>
+            <th>{isScoreBased ? 'Guesses' : 'Time'}</th>
           </tr>
         </thead>
         <tbody>
@@ -85,7 +98,7 @@ export function LeaderboardTable({ game, date }: Props) {
                 )}
                 {entry.isSelf && <span className="self-badge">You</span>}
               </td>
-              <td className="leaderboard-time">{formatTime(entry.completionTimeSecs)}</td>
+              <td className="leaderboard-time">{formatScore(entry)}</td>
             </tr>
           ))}
         </tbody>
