@@ -66,6 +66,10 @@ app.get('/api/stats', (req, res) => {
     });
   }
 
+  // Local date string — matches how the scraper stores played_date.
+  const localDateStr = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
   // Compute streak (consecutive completed days ending today or yesterday)
   const completedDates = [
     ...new Set(
@@ -81,7 +85,7 @@ app.get('/api/stats', (req, res) => {
   for (let i = 0; i < completedDates.length; i++) {
     const expected = new Date(today);
     expected.setDate(expected.getDate() - i);
-    const expectedStr = expected.toISOString().split('T')[0];
+    const expectedStr = localDateStr(expected);
 
     if (completedDates[i] === expectedStr) {
       streak++;
@@ -90,7 +94,7 @@ app.get('/api/stats', (req, res) => {
       if (i === 0) {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const yesterdayStr = localDateStr(yesterday);
         if (completedDates[0] === yesterdayStr) {
           streak++;
           continue;
